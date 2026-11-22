@@ -1,0 +1,27 @@
+appId: it.stafffeste.staffvj
+productName: StaffVJ
+directories:
+  output: release
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+asar: true
+asarUnpack:
+  - electron/ndi-worker.cjs
+  - node_modules/grandi/**/*
+  - node_modules/@grandi/**/*
+  - node_modules/node-gyp-build/**/*
+mac:
+  target:
+    - dmg
+  category: public.app-category.music
+  extendInfo:
+    NSCameraUsageDescription: StaffVJ usa la telecamera o la scheda di acquisizione per le sorgenti video live.
+    NSMicrophoneUsageDescription: StaffVJ usa l'ingresso audio per sincronizzare effetti e automatismi al ritmo.
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
