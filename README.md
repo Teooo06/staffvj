@@ -140,6 +140,8 @@ npx electron-builder --linux
 - BPM manuale, tap tempo e analisi audio con ingressi mix/bass/hybrid.
 - Scene salvabili con anteprima, tasti rapidi e richiamo momentaneo: tocco singolo = circa 1 secondo, tieni premuto = resta finché tieni, `Enter` = blocca la scena, `Esc` / `Shift` / `Ctrl` / `Tab` = annulla e ripristina la preview.
 - Tasti scena con secondo livello tramite `Ctrl` (es. `Ctrl+A`), pannello dei tasti già usati, tastiera italiana visualizzata nella modale Scorciatoie e tasti assegnati bloccati.
+- `Backspace` cambia il deck attivo; `ì` esegue il taglio netto del deck attivo sul programma.
+- I tasti globali sono disattivati quando scrivi in un campo di testo o input (titoli, valori numerici, ecc.).
 - Controllo video con intervallo a due maniglie (inizio/fine), play/pausa, stop, ricomincia, indietro/avanti 5 s, loop e velocità; l'intervallo agisce dopo il caricamento della durata del video.
 - Output separato su display/proiettore.
 

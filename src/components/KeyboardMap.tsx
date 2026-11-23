@@ -33,6 +33,8 @@ const ACTION_LABELS: Record<ShortcutAction, { name: string; short: string }> = {
   clearLayer: { name: 'Svuota layer', short: 'SVUOTA' },
   shortcuts: { name: 'Apri scorciatoie', short: 'F1' },
   settings: { name: 'Apri impostazioni', short: 'F2' },
+  switchDeck: { name: 'Cambia deck', short: 'DECK' },
+  cutDeckLive: { name: 'Taglio netto', short: 'CUT' },
 };
 
 function keyLabel(code: string): string {

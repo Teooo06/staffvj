@@ -109,6 +109,8 @@ export function useKeyboardShortcuts(tap: () => void, nudgeBpm: (delta: number) 
         ['takeA', () => store.takeDeckLive('A', 900)],
         ['takeB', () => store.takeDeckLive('B', 900)],
         ['clearLayer', () => store.clearLayer(store.target.deck, store.target.layerIndex)],
+        ['switchDeck', () => store.selectDeck(store.target.deck === 'A' ? 'B' : 'A')],
+        ['cutDeckLive', () => store.cutDeckLive(store.target.deck)],
         ['shortcuts', () => store.setShortcutsOpen(true)],
         ['settings', () => preferences.setSettingsOpen(true)],
       ];

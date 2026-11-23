@@ -28,6 +28,8 @@ const GLOBAL_LABELS: Record<ShortcutAction, string> = {
   clearLayer: 'Svuota layer',
   shortcuts: 'Scorciatoie',
   settings: 'Impostazioni',
+  switchDeck: 'Cambia deck',
+  cutDeckLive: 'Taglio netto',
 };
 
 function shortcutModifiersEqual(left: unknown, right: unknown): boolean {

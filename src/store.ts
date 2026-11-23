@@ -159,6 +159,7 @@ export interface AppStore {
   setCrossfade: (value: number) => void;
   animateCrossfade: (value: number, durationMs?: number) => void;
   takeDeckLive: (deck: DeckId, durationMs?: number) => void;
+  cutDeckLive: (deck: DeckId) => void;
   setMasterOpacity: (value: number) => void;
   setBlackout: (value: boolean) => void;
   toggleBlackout: () => void;
@@ -1113,6 +1114,12 @@ export const useAppStore = create<AppStore>((set, get) => ({
         current.selectDeck(outgoingDeck);
       }
     }, durationMs + 40);
+  },
+
+  cutDeckLive: (deck: DeckId) => {
+    const state = get();
+    set({ crossfade: deck === 'A' ? 0 : 1, monitor: 'program' });
+    state.selectDeck(deck);
   },
 
   setMasterOpacity: (value) => set({ masterOpacity: clamp(value, 0, 1) }),

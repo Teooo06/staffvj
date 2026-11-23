@@ -25,6 +25,8 @@ const SHORTCUTS: Array<{ id: ShortcutAction; label: string }> = [
   { id: 'clearLayer', label: 'Svuota il layer selezionato' },
   { id: 'shortcuts', label: 'Apri questo pannello' },
   { id: 'settings', label: 'Apri impostazioni' },
+  { id: 'switchDeck', label: 'Cambia deck' },
+  { id: 'cutDeckLive', label: 'Taglio netto deck live' },
 ];
 
 export function Shortcuts() {

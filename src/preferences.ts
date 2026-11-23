@@ -15,7 +15,9 @@ export type ShortcutAction =
   | 'takeB'
   | 'clearLayer'
   | 'shortcuts'
-  | 'settings';
+  | 'settings'
+  | 'switchDeck'
+  | 'cutDeckLive';
 
 export interface ShortcutBinding {
   code: string;
@@ -89,6 +91,8 @@ const DEFAULT_SHORTCUTS: Record<ShortcutAction, ShortcutBinding | null> = {
   clearLayer: { code: 'Delete', label: 'Canc', ctrl: false, alt: false, shift: false, meta: false },
   shortcuts: { code: 'F1', label: 'F1', ctrl: false, alt: false, shift: false, meta: false },
   settings: { code: 'F2', label: 'F2', ctrl: false, alt: false, shift: false, meta: false },
+  switchDeck: { code: 'Backspace', label: 'Canc', ctrl: false, alt: false, shift: false, meta: false },
+  cutDeckLive: { code: 'Equal', label: 'ì', ctrl: false, alt: false, shift: false, meta: false },
 };
 
 const DEFAULT_PREFERENCES: UserPreferences = {
