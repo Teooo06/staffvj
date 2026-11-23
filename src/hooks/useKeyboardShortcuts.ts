@@ -33,15 +33,26 @@ function isTextEntry(target: EventTarget | null): boolean {
 
 export function useKeyboardShortcuts(tap: () => void, nudgeBpm: (delta: number) => void): void {
   const momentaryRef = useRef<MomentaryKeyState | null>(null);
+  const suppressedCodesRef = useRef(new Set<string>());
 
   useEffect(() => {
-    const finishMomentary = (sceneId?: string) => {
+    const finishMomentary = (sceneId?: string, suppressKey = false) => {
       const active = momentaryRef.current;
       if (!active) return;
       if (sceneId && active.sceneId !== sceneId) return;
+      if (suppressKey) suppressedCodesRef.current.add(active.code);
       if (active.timer !== null) window.clearTimeout(active.timer);
       momentaryRef.current = null;
       useAppStore.getState().endMomentaryScene(active.sceneId);
+    };
+
+    const latchMomentary = () => {
+      const active = momentaryRef.current;
+      if (!active) return;
+      suppressedCodesRef.current.add(active.code);
+      if (active.timer !== null) window.clearTimeout(active.timer);
+      momentaryRef.current = null;
+      useAppStore.getState().latchMomentaryScene(active.sceneId);
     };
 
     const handler = (event: KeyboardEvent) => {
@@ -49,7 +60,7 @@ export function useKeyboardShortcuts(tap: () => void, nudgeBpm: (delta: number) 
       const preferences = usePreferencesStore.getState();
 
       if (event.key === 'Escape') {
-        finishMomentary();
+        finishMomentary(undefined, true);
         store.closeEffectBrowser();
         store.setShortcutsOpen(false);
         preferences.setSettingsOpen(false);
@@ -61,9 +72,23 @@ export function useKeyboardShortcuts(tap: () => void, nudgeBpm: (delta: number) 
 
       if (momentaryRef.current && MOMENTARY_STOP_CODES.has(event.code)) {
         event.preventDefault();
-        finishMomentary();
+        finishMomentary(undefined, true);
         return;
       }
+
+      if (momentaryRef.current && (event.code === 'Enter' || event.code === 'NumpadEnter')) {
+        event.preventDefault();
+        latchMomentary();
+        return;
+      }
+
+      if (suppressedCodesRef.current.has(event.code)) return;
+
+      if (store.shortcutsOpen) {
+        if (event.ctrlKey || event.metaKey) event.preventDefault();
+        return;
+      }
+      if (preferences.settingsOpen) return;
 
       if (isTextEntry(event.target)) return;
       if (
@@ -113,7 +138,7 @@ export function useKeyboardShortcuts(tap: () => void, nudgeBpm: (delta: number) 
         if (event.repeat) return;
         const active = momentaryRef.current;
         if (active?.sceneId === scene.id) return;
-        if (active) finishMomentary();
+        if (active) finishMomentary(undefined, true);
         useAppStore.getState().beginMomentaryScene(scene.id);
         const timer = window.setTimeout(() => {
           const current = momentaryRef.current;
@@ -134,6 +159,7 @@ export function useKeyboardShortcuts(tap: () => void, nudgeBpm: (delta: number) 
     };
 
     const release = (event: KeyboardEvent) => {
+      suppressedCodesRef.current.delete(event.code);
       const active = momentaryRef.current;
       if (!active || active.code !== event.code) return;
       active.released = true;

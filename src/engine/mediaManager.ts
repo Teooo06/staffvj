@@ -1,5 +1,6 @@
 import type { MediaItem, MediaLayerSource } from '../types';
 import { mediaUrl } from '../lib/utils';
+import { videoTimeline } from '../lib/videoPlayback';
 import { TextRenderer, TEXT_CANVAS_SIZE } from './textTexture';
 import { createSourceTexture } from './glUtils';
 
@@ -17,7 +18,6 @@ interface VideoEntry {
   failed: boolean;
   error: string | null;
   fallbackStart: number;
-  syncedStart: number | null;
   lastUploadedTime: number;
   lastUploadedWidth: number;
   lastUploadedHeight: number;
@@ -314,45 +314,43 @@ export class MediaManager {
     if (!item.path) return null;
     const video = this.ensureVideo(item);
     if (!video || video.failed) return null;
-    if (video.video.readyState < 2 || !video.video.videoWidth) return null;
+    if (video.video.readyState < 2 || !video.video.videoWidth) {
+      return video.width && video.height
+        ? { texture: video.texture, width: video.width, height: video.height }
+        : null;
+    }
 
     if (video.fallbackStart === 0) video.fallbackStart = nowMs;
-    const duration = video.video.duration;
-    const playbackRate = source.playbackRate ?? 1;
-    const rangeStart = source.rangeStart ?? 0;
-    const rangeEnd = source.rangeEnd ?? duration;
-    const base = source.seekAt ?? source.startedAt;
-    const sourceTime = rangeStart + ((nowMs - base) / 1000) * playbackRate;
-    const target = sourceTime > rangeEnd ? rangeEnd : sourceTime;
+    const duration = Number.isFinite(video.video.duration) ? video.video.duration : 0;
+    const timeline = videoTimeline(source, nowMs, duration);
+    const target = timeline.position;
+    const reachedEnd =
+      !timeline.loop && timeline.rawPosition >= timeline.end - 0.005 && timeline.end > timeline.start;
 
-    if (Number.isFinite(duration) && duration > 0) {
-      if (video.syncedStart !== base) {
-        try {
-          video.video.currentTime = target;
-        } catch (_error) {
-          /* il media non è ancora pronto per la ricerca */
-        }
-        video.syncedStart = base;
-      } else if (Math.abs(video.video.currentTime - target) > SYNC_TOLERANCE) {
-        try {
-          video.video.currentTime = target;
-        } catch (_error) {
-          /* noop */
-        }
+    if (duration > 0 && !video.video.seeking && Math.abs(video.video.currentTime - target) > SYNC_TOLERANCE) {
+      try {
+        video.video.currentTime = target;
+      } catch (_error) {
+        /* il media non è ancora pronto per la ricerca */
       }
     }
 
-    video.video.playbackRate = playbackRate;
-    if (video.video.paused) {
+    video.video.playbackRate = timeline.rate;
+    const shouldPause = timeline.paused || reachedEnd;
+    if (shouldPause) {
+      if (!video.video.paused) video.video.pause();
+    } else if (video.video.paused) {
       void video.video.play().catch(() => {
         /* autoplay bloccato: il frame resta sull'ultimo fotogramma disponibile */
       });
     }
 
+    const canUpload = !video.video.seeking || video.lastUploadedTime < 0;
     if (
-      video.video.currentTime !== video.lastUploadedTime ||
-      video.video.videoWidth !== video.lastUploadedWidth ||
-      video.video.videoHeight !== video.lastUploadedHeight
+      canUpload &&
+      (video.video.currentTime !== video.lastUploadedTime ||
+        video.video.videoWidth !== video.lastUploadedWidth ||
+        video.video.videoHeight !== video.lastUploadedHeight)
     ) {
       this.upload(video.video, video.texture);
       video.lastUploadedTime = video.video.currentTime;
@@ -374,7 +372,7 @@ export class MediaManager {
     video.crossOrigin = 'anonymous';
     video.muted = true;
     video.defaultMuted = true;
-    video.loop = true;
+    video.loop = false;
     video.playsInline = true;
     video.preload = 'auto';
     video.setAttribute('playsinline', '');
@@ -388,7 +386,6 @@ export class MediaManager {
       failed: false,
       error: null,
       fallbackStart: 0,
-      syncedStart: null,
       lastUploadedTime: -1,
       lastUploadedWidth: 0,
       lastUploadedHeight: 0,
@@ -403,9 +400,6 @@ export class MediaManager {
       if (!entry) return;
       entry.width = video.videoWidth;
       entry.height = video.videoHeight;
-      void video.play().catch(() => {
-        /* noop */
-      });
     });
 
     video.src = mediaUrl(item.path);

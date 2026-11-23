@@ -1,5 +1,6 @@
 import { useAppStore } from '../store';
 import { Modal } from './Modal';
+import { KeyboardMap } from './KeyboardMap';
 import { shortcutLabel, usePreferencesStore } from '../preferences';
 import type { ShortcutAction } from '../preferences';
 
@@ -37,34 +38,42 @@ export function Shortcuts() {
       open={open}
       title="Scorciatoie"
       subtitle="Controllo rapido durante il live"
+      wide
       onClose={() => setOpen(false)}
     >
-      <div className="shortcut-list">
-        {SHORTCUTS.filter((entry) => shortcuts[entry.id]).map((entry) => (
-          <div key={entry.label} className="shortcut-row">
-            <span className="shortcut-keys">
-              <kbd>{shortcutLabel(shortcuts[entry.id])}</kbd>
-            </span>
-            <span>{entry.label}</span>
+      <div className="shortcuts-layout">
+        <div className="shortcuts-side">
+          <div className="shortcut-list">
+            {SHORTCUTS.filter((entry) => shortcuts[entry.id]).map((entry) => (
+              <div key={entry.label} className="shortcut-row">
+                <span className="shortcut-keys">
+                  <kbd>{shortcutLabel(shortcuts[entry.id])}</kbd>
+                </span>
+                <span>{entry.label}</span>
+              </div>
+            ))}
+            {scenes.filter((scene) => scene.shortcut).map((scene) => (
+              <div key={scene.id} className="shortcut-row">
+                <span className="shortcut-keys"><kbd>{[
+                  ...(scene.shortcutModifiers?.ctrl ? ['Ctrl'] : []),
+                  ...(scene.shortcutModifiers?.alt ? ['Alt'] : []),
+                  ...(scene.shortcutModifiers?.shift ? ['Maiusc'] : []),
+                  ...(scene.shortcutModifiers?.meta ? ['⌘'] : []),
+                  scene.shortcutLabel ?? keyLabel(scene.shortcut!),
+                ].join('+')}</kbd></span>
+                <span>Carica “{scene.name}” nel deck di preview · tocco 1 s, tieni premuto</span>
+              </div>
+            ))}
           </div>
-        ))}
-        {scenes.filter((scene) => scene.shortcut).map((scene) => (
-          <div key={scene.id} className="shortcut-row">
-            <span className="shortcut-keys"><kbd>{[
-              ...(scene.shortcutModifiers?.ctrl ? ['Ctrl'] : []),
-              ...(scene.shortcutModifiers?.alt ? ['Alt'] : []),
-              ...(scene.shortcutModifiers?.shift ? ['Maiusc'] : []),
-              ...(scene.shortcutModifiers?.meta ? ['⌘'] : []),
-              scene.shortcutLabel ?? keyLabel(scene.shortcut!),
-            ].join('+')}</kbd></span>
-            <span>Carica “{scene.name}” nel deck di preview · tocco 1 s, tieni premuto</span>
-          </div>
-        ))}
+          <p className="hint">
+            Assegna i tasti alle scene dal pannello Scene. I tasti colorati sono assegnati e
+            bloccati. Tieni premuto <kbd>Ctrl</kbd> per vedere il layer alternativo, oppure usa il
+            pulsante sopra la tastiera. <kbd>Enter</kbd> blocca una scena momentanea;{' '}
+            <kbd>Esc</kbd> la annulla e ripristina la preview.
+          </p>
+        </div>
+        <KeyboardMap />
       </div>
-      <p className="hint">
-          Assegna i tasti alle scene dal pannello Scene. I tasti assegnati richiamano la scena nel
-        deck selezionato; Esc chiude menu e finestre.
-      </p>
     </Modal>
   );
 }

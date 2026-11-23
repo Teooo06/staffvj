@@ -138,8 +138,9 @@ npx electron-builder --linux
 - Import di video, immagini, testi, generatori, telecamere, NDI e pagine web/HTML.
 - Effetti WebGL2 sul layer, sul deck o sul master.
 - BPM manuale, tap tempo e analisi audio con ingressi mix/bass/hybrid.
-- Scene salvabili con anteprima, tasti rapidi e richiamo momentaneo: tocco = circa 1 secondo, pressione prolungata = la scena resta finché tieni premuto. `Esc` interrompe subito.
-- Tasti scena con secondo livello tramite `Ctrl` (es. `Ctrl+A`), con pannello dei tasti già usati durante l'assegnazione.
+- Scene salvabili con anteprima, tasti rapidi e richiamo momentaneo: tocco singolo = circa 1 secondo, tieni premuto = resta finché tieni, `Enter` = blocca la scena, `Esc` / `Shift` / `Ctrl` / `Tab` = annulla e ripristina la preview.
+- Tasti scena con secondo livello tramite `Ctrl` (es. `Ctrl+A`), pannello dei tasti già usati, tastiera italiana visualizzata nella modale Scorciatoie e tasti assegnati bloccati.
+- Controllo video con intervallo a due maniglie (inizio/fine), play/pausa, stop, ricomincia, indietro/avanti 5 s, loop e velocità; l'intervallo agisce dopo il caricamento della durata del video.
 - Output separato su display/proiettore.
 
 ## Documentazione

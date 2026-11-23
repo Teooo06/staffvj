@@ -1298,6 +1298,52 @@ p {
   box-shadow: 0 0 0 1px rgba(200, 255, 46, 0.12);
 }
 
+.scene-momentary-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid rgba(200, 255, 46, 0.42);
+  border-radius: 8px;
+  background: rgba(200, 255, 46, 0.07);
+}
+
+.scene-momentary-banner > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.scene-momentary-banner strong {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.scene-momentary-banner .hint {
+  display: block;
+  font-size: 9.5px;
+}
+
+.scene-momentary-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.scene-momentary-actions .btn {
+  flex: 1;
+}
+
+.scene-momentary-actions .btn span {
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+}
+
+.scene-momentary-actions .btn.primary span {
+  color: #0d1206;
+}
+
 .scene-key-map {
   display: flex;
   flex-direction: column;
@@ -2460,6 +2506,144 @@ input[type="range"]:active::-webkit-slider-thumb {
   cursor: not-allowed;
 }
 
+/* ---------- Dual range / video transport ---------- */
+
+.dual-range {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dual-range-control {
+  position: relative;
+  height: 20px;
+}
+
+.dual-range-track,
+.dual-range-fill {
+  position: absolute;
+  top: 8px;
+  height: 4px;
+  border-radius: 999px;
+}
+
+.dual-range-track {
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dual-range-fill {
+  background: linear-gradient(90deg, rgba(200, 255, 46, 0.72), rgba(255, 62, 165, 0.62));
+}
+
+.dual-range-input {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: none;
+  cursor: pointer;
+}
+
+.dual-range-input::-webkit-slider-runnable-track {
+  height: 4px;
+  background: transparent;
+}
+
+.dual-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border: 2px solid #0b0e14;
+  border-radius: 50%;
+  background: #eef3ff;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 0 10px rgba(200, 255, 46, 0.22);
+  pointer-events: auto;
+}
+
+.dual-range-end {
+  z-index: 3;
+}
+
+.dual-range-input:active::-webkit-slider-thumb {
+  background: var(--accent);
+}
+
+.dual-range.is-disabled {
+  opacity: 0.45;
+}
+
+.video-transport {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.video-control {
+  display: inline-flex;
+  flex: 1;
+  min-width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #0a0d14;
+  color: var(--muted);
+  font-size: 8.5px;
+  cursor: pointer;
+}
+
+.video-control:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.video-control.is-primary {
+  color: #0d1206;
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.video-control.is-active {
+  color: var(--accent);
+  border-color: rgba(200, 255, 46, 0.55);
+  background: rgba(200, 255, 46, 0.09);
+}
+
+.video-control:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.video-readout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--faint);
+  font-size: 8.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.video-readout strong {
+  color: var(--text);
+  font-weight: 650;
+}
+
 /* ---------- Toggle ---------- */
 
 .toggle {
@@ -2911,7 +3095,7 @@ input[type="range"]:active::-webkit-slider-thumb {
 }
 
 .modal-wide {
-  width: min(840px, 100%);
+  width: min(1040px, 100%);
 }
 
 .modal-head {
@@ -3033,6 +3217,317 @@ input[type="range"]:active::-webkit-slider-thumb {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.shortcuts-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 270px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.shortcuts-side {
+  min-width: 0;
+}
+
+.shortcuts-side .hint {
+  margin-top: 10px;
+}
+
+.keyboard-panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.keyboard-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.keyboard-toolbar > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.keyboard-toolbar strong {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.keyboard-layer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: #0d1119;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.keyboard-layer-btn:hover,
+.keyboard-layer-btn.is-active {
+  border-color: rgba(77, 225, 255, 0.55);
+  color: var(--cyan);
+  background: rgba(77, 225, 255, 0.07);
+}
+
+.keyboard-layer-btn kbd {
+  height: 19px;
+  border-bottom-width: 1px;
+  font-size: 8px;
+}
+
+.keyboard-shell {
+  overflow-x: auto;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent),
+    #080b11;
+}
+
+.keyboard {
+  --key-unit: clamp(27px, 3vw, 38px);
+  display: flex;
+  width: max-content;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 auto;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 4px;
+}
+
+.keycap {
+  position: relative;
+  width: calc(var(--key-unit) * var(--key-units, 1));
+  height: calc(var(--key-unit) * 0.94);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border: 1px solid #242b3b;
+  border-bottom-color: #30394d;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #171c28, #11151e);
+  color: #aeb7c8;
+  font-size: calc(var(--key-unit) * 0.27);
+  font-weight: 650;
+  line-height: 1;
+  user-select: none;
+}
+
+.keycap.is-blank {
+  opacity: 0.38;
+}
+
+.keycap.is-free {
+  opacity: 0.62;
+}
+
+.keycap.is-assigned {
+  color: var(--text);
+  border-color: rgba(200, 255, 46, 0.5);
+  background:
+    linear-gradient(180deg, rgba(200, 255, 46, 0.2), rgba(200, 255, 46, 0.08)),
+    #10150e;
+  box-shadow: inset 0 0 0 1px rgba(200, 255, 46, 0.08);
+}
+
+.keycap.is-global {
+  border-color: rgba(77, 225, 255, 0.55);
+  background:
+    linear-gradient(180deg, rgba(77, 225, 255, 0.2), rgba(77, 225, 255, 0.07)),
+    #0d141a;
+}
+
+.keycap.is-global.is-scene {
+  border-color: rgba(200, 255, 46, 0.7);
+  background:
+    linear-gradient(180deg, rgba(77, 225, 255, 0.14), rgba(200, 255, 46, 0.12)),
+    #111510;
+}
+
+.keycap.is-locked::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(200, 255, 46, 0.75);
+}
+
+.keycap.is-global.is-locked::after {
+  background: var(--cyan);
+  box-shadow: 0 0 6px rgba(77, 225, 255, 0.75);
+}
+
+.keycap.is-held {
+  color: #0b0e14;
+  border-color: var(--cyan);
+  background: var(--cyan);
+}
+
+.keycap-main {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.keycap-sub {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  color: var(--faint);
+  font-size: calc(var(--key-unit) * 0.18);
+  font-weight: 500;
+}
+
+.keycap-badges {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  left: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.keycap-badge,
+.keycap-more {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 1px 3px;
+  border-radius: 2px;
+  background: rgba(200, 255, 46, 0.18);
+  color: var(--accent);
+  font-size: calc(var(--key-unit) * 0.15);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.keycap.is-global .keycap-badge {
+  background: rgba(77, 225, 255, 0.18);
+  color: var(--cyan);
+}
+
+.keycap.is-global.is-scene .keycap-badge {
+  color: #dfff9a;
+}
+
+.keycap-free {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  left: 0;
+  text-align: center;
+  color: var(--faint);
+  font-size: calc(var(--key-unit) * 0.14);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+}
+
+.keyboard-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  color: var(--faint);
+  font-size: 8.5px;
+}
+
+.keyboard-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.legend-dot.global {
+  background: var(--cyan);
+}
+
+.legend-dot.locked {
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(200, 255, 46, 0.7);
+}
+
+.legend-dot.free {
+  background: #384155;
+}
+
+.keyboard-assignments {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.keyboard-assignment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.keyboard-assignment {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 6px 3px 3px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.018);
+  color: var(--muted);
+  font-size: 8.5px;
+}
+
+.keyboard-assignment.scene {
+  border-color: rgba(200, 255, 46, 0.25);
+}
+
+.keyboard-assignment kbd {
+  height: 18px;
+  min-width: 18px;
+  border-bottom-width: 1px;
+  font-size: 8px;
+}
+
+@media (max-width: 880px) {
+  .shortcuts-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 kbd {

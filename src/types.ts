@@ -115,6 +115,9 @@ export interface MediaLayerSource {
   rangeStart?: number;
   rangeEnd?: number;
   seekAt?: number;
+  paused?: boolean;
+  pausePosition?: number;
+  loop?: boolean;
 }
 
 export interface CaptureLayerSource {

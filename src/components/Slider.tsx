@@ -59,6 +59,90 @@ export function Slider({
   );
 }
 
+export interface DualRangeSliderProps {
+  label?: string;
+  start: number;
+  end: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (start: number, end: number) => void;
+  format?: (value: number) => string;
+  disabled?: boolean;
+}
+
+export function DualRangeSlider({
+  label,
+  start,
+  end,
+  min,
+  max,
+  step = 0.1,
+  onChange,
+  format,
+  disabled,
+}: DualRangeSliderProps) {
+  const span = Math.max(max - min, 0);
+  const startPct = span > 0 ? ((start - min) / span) * 100 : 0;
+  const endPct = span > 0 ? ((end - min) / span) * 100 : 100;
+  const display = format ?? ((value: number) => value.toFixed(1));
+  const minimumGap = Math.min(step, span);
+
+  return (
+    <div className={cx('dual-range', disabled && 'is-disabled')}>
+      {label ? (
+        <span className="slider-head">
+          <span>{label}</span>
+          <span className="slider-value">
+            {display(start)} <em>→</em> {display(end)}
+          </span>
+        </span>
+      ) : null}
+      <div
+        className="dual-range-control"
+        onDoubleClick={() => {
+          if (!disabled) onChange(min, max);
+        }}
+        title="Doppio clic per usare l'intero video"
+      >
+        <span className="dual-range-track" />
+        <span
+          className="dual-range-fill"
+          style={{ left: `${startPct}%`, right: `${100 - endPct}%` }}
+        />
+        <input
+          type="range"
+          className="dual-range-input dual-range-start"
+          aria-label={label ? `${label} — inizio` : 'Inizio'}
+          min={min}
+          max={max}
+          step={step}
+          value={start}
+          disabled={disabled}
+          onChange={(event) => {
+            const value = Math.min(Number(event.target.value), end - minimumGap);
+            onChange(Math.max(min, value), end);
+          }}
+        />
+        <input
+          type="range"
+          className="dual-range-input dual-range-end"
+          aria-label={label ? `${label} — fine` : 'Fine'}
+          min={min}
+          max={max}
+          step={step}
+          value={end}
+          disabled={disabled}
+          onChange={(event) => {
+            const value = Math.max(Number(event.target.value), start + minimumGap);
+            onChange(start, Math.min(max, value));
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function Toggle({
   label,
   hint,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AudioSettings, MediaItem, TransportData } from '../types';
+import type { AudioSettings, MediaItem, MediaLayerSource, TransportData } from '../types';
 import type { NdiStatus } from '../types';
 import { BLEND_LABELS, GENERATOR_LABELS, GENERATOR_OPTIONS } from '../types';
 import type { GeneratorKind, TextSettings } from '../types';
@@ -8,8 +8,17 @@ import type { InspectorTab } from '../store';
 import { useMediaDevices } from '../hooks/useMediaDevices';
 import { FONT_OPTIONS, defaultGenerator } from '../demo';
 import { cx } from '../lib/utils';
+import {
+  videoPausePatch,
+  videoPlayPatch,
+  videoRangePatch,
+  videoRestartPatch,
+  videoSeekPatch,
+  videoStopPatch,
+  videoTimeline,
+} from '../lib/videoPlayback';
 import { Icon } from './Icons';
-import { Slider, Toggle } from './Slider';
+import { DualRangeSlider, Slider, Toggle } from './Slider';
 import { EffectRack } from './EffectRack';
 import { AudioRhythmMonitor } from './AudioRhythmMonitor';
 import { usePreferencesStore } from '../preferences';
@@ -23,6 +32,14 @@ const TABS: Array<{ id: InspectorTab; label: string; icon: 'layers' | 'sparkles'
 ];
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
+
+function formatVideoTime(value: number): string {
+  const safe = Number.isFinite(value) ? Math.max(0, value) : 0;
+  const minutes = Math.floor(safe / 60);
+  const seconds = Math.floor(safe % 60);
+  const tenths = Math.floor((safe - Math.floor(safe)) * 10);
+  return `${minutes}:${String(seconds).padStart(2, '0')}.${tenths}`;
+}
 
 function SourceBadge({
   item,
@@ -332,20 +349,89 @@ function LayerTab() {
       ? library.find((item) => item.id === source.mediaId) ?? null
       : null;
   const videoSource = source?.kind === 'media' ? source : null;
-  const videoDuration = media?.kind === 'video' ? media.duration ?? videoSource?.rangeEnd ?? 0 : 0;
-  const seekVideo = (delta: number) => {
+  const videoDuration = media?.kind === 'video' ? Math.max(0, media.duration ?? videoSource?.rangeEnd ?? 0) : 0;
+  const [videoClock, setVideoClock] = useState(() => Date.now());
+  const videoTimelineState =
+    videoSource && videoDuration > 0
+      ? videoTimeline(videoSource, videoClock, videoDuration)
+      : null;
+  const videoEnded = Boolean(
+    videoTimelineState &&
+      !videoTimelineState.loop &&
+      videoTimelineState.end > videoTimelineState.start &&
+      videoTimelineState.rawPosition >= videoTimelineState.end - 0.01,
+  );
+
+  useEffect(() => {
+    if (!videoSource || videoSource.paused || videoEnded || videoDuration <= 0) return;
+    setVideoClock(Date.now());
+    const timer = window.setInterval(() => setVideoClock(Date.now()), 80);
+    return () => window.clearInterval(timer);
+  }, [videoSource, videoDuration, videoEnded]);
+
+  const patchVideo = (patch: Partial<MediaLayerSource>) => {
     if (!videoSource) return;
-    const rate = videoSource.playbackRate ?? 1;
-    const start = videoSource.rangeStart ?? 0;
-    const end = videoSource.rangeEnd ?? videoDuration;
-    const base = videoSource.seekAt ?? videoSource.startedAt;
-    const current = start + ((Date.now() - base) / 1000) * rate;
-    const next = Math.max(start, Math.min(end || start, current + delta));
-    const seekAt = Date.now() - ((next - start) / rate) * 1000;
     updateLayer(target.deck, target.layerIndex, {
-      source: { ...videoSource, seekAt },
+      source: { ...videoSource, ...patch },
     });
   };
+
+  const seekVideo = (delta: number) => {
+    if (!videoSource || videoDuration <= 0) return;
+    const now = Date.now();
+    const timeline = videoTimeline(videoSource, now, videoDuration);
+    patchVideo(videoSeekPatch(videoSource, timeline.position + delta, now, videoDuration));
+    setVideoClock(now);
+  };
+
+  const toggleVideoPlayback = () => {
+    if (!videoSource || videoDuration <= 0) return;
+    const now = Date.now();
+    patchVideo(
+      videoSource.paused || videoEnded
+        ? videoPlayPatch(videoSource, now, videoDuration)
+        : videoPausePatch(videoSource, now, videoDuration),
+    );
+    setVideoClock(now);
+  };
+
+  const stopVideo = () => {
+    if (!videoSource || videoDuration <= 0) return;
+    patchVideo(videoStopPatch(videoSource, videoDuration));
+    setVideoClock(Date.now());
+  };
+
+  const restartVideo = () => {
+    if (!videoSource) return;
+    patchVideo(videoRestartPatch(Date.now()));
+    setVideoClock(Date.now());
+  };
+
+  const changeVideoRate = (value: number) => {
+    if (!videoSource) return;
+    const now = Date.now();
+    const timeline = videoTimeline(videoSource, now, videoDuration);
+    patchVideo({
+      playbackRate: value,
+      seekAt: now - ((timeline.position - timeline.start) / Math.max(value, 0.05)) * 1000,
+      pausePosition: timeline.paused ? timeline.position : undefined,
+    });
+    setVideoClock(now);
+  };
+
+  const changeVideoRange = (start: number, end: number) => {
+    if (!videoSource) return;
+    const now = Date.now();
+    patchVideo(videoRangePatch(videoSource, start, end, now, videoDuration));
+    setVideoClock(now);
+  };
+
+  const toggleVideoLoop = () => {
+    if (!videoSource) return;
+    patchVideo({ loop: videoSource.loop === false });
+    setVideoClock(Date.now());
+  };
+
   const scope = {
     kind: 'layer' as const,
     deck: target.deck,
@@ -408,60 +494,105 @@ function LayerTab() {
         </p>
       ) : null}
 
-      {source?.kind === 'media' && media?.kind === 'video' ? (
+      {videoSource && media?.kind === 'video' ? (
         <div className="editor-block">
           <span className="eyebrow">Riproduzione video</span>
+          <div className="video-readout">
+            <span>
+              Lettura <strong>{formatVideoTime(videoTimelineState?.position ?? 0)}</strong>
+            </span>
+            <span>
+              Durata <strong>{formatVideoTime(videoDuration)}</strong>
+            </span>
+          </div>
+          <DualRangeSlider
+            label="Intervallo"
+            start={videoTimelineState?.start ?? 0}
+            end={videoTimelineState?.end ?? 0}
+            min={0}
+            max={videoDuration || 1}
+            step={0.1}
+            disabled={videoDuration <= 0}
+            format={formatVideoTime}
+            onChange={changeVideoRange}
+          />
+          <div className="video-transport">
+            <button
+              type="button"
+              className="video-control"
+              title="Indietro di 5 secondi"
+              aria-label="Indietro di 5 secondi"
+              disabled={videoDuration <= 0}
+              onClick={() => seekVideo(-5)}
+            >
+              <Icon name="rewind" size={13} />
+            </button>
+            <button
+              type="button"
+              className="video-control is-primary"
+              title={videoSource.paused || videoEnded ? 'Riproduci' : 'Pausa'}
+              aria-label={videoSource.paused || videoEnded ? 'Riproduci' : 'Pausa'}
+              disabled={videoDuration <= 0}
+              onClick={toggleVideoPlayback}
+            >
+              <Icon name={videoSource.paused || videoEnded ? 'play' : 'pause'} size={13} />
+            </button>
+            <button
+              type="button"
+              className="video-control"
+              title="Stop e torna all'inizio dell'intervallo"
+              aria-label="Stop"
+              disabled={videoDuration <= 0}
+              onClick={stopVideo}
+            >
+              <Icon name="stop" size={12} />
+            </button>
+            <button
+              type="button"
+              className="video-control"
+              title="Ricomincia dall'inizio"
+              aria-label="Ricomincia"
+              disabled={!videoSource}
+              onClick={restartVideo}
+            >
+              <Icon name="restart" size={13} />
+            </button>
+            <button
+              type="button"
+              className="video-control"
+              title="Avanti di 5 secondi"
+              aria-label="Avanti di 5 secondi"
+              disabled={videoDuration <= 0}
+              onClick={() => seekVideo(5)}
+            >
+              <Icon name="forward" size={13} />
+            </button>
+            <button
+              type="button"
+              className={cx('video-control', videoSource.loop !== false && 'is-active')}
+              title={videoSource.loop !== false ? 'Loop attivo' : 'Loop disattivo'}
+              aria-label={videoSource.loop !== false ? 'Disattiva loop' : 'Attiva loop'}
+              aria-pressed={videoSource.loop !== false}
+              disabled={videoDuration <= 0}
+              onClick={toggleVideoLoop}
+            >
+              <Icon name="loop" size={13} />
+            </button>
+          </div>
+          {videoDuration <= 0 ? (
+            <p className="hint">Lettura della durata in corso: i controlli si attivano appena il video è pronto.</p>
+          ) : null}
           <Slider
             label="Velocità"
-            value={source.playbackRate ?? 1}
+            value={videoSource.playbackRate ?? 1}
             defaultValue={1}
             min={0.25}
             max={4}
             step={0.25}
             unit="×"
             format={(value) => value.toFixed(2)}
-            onChange={(value) =>
-              updateLayer(target.deck, target.layerIndex, {
-                source: { ...source, playbackRate: value },
-              })
-            }
+            onChange={changeVideoRate}
           />
-          <Slider
-            label="Inizio"
-            value={source.rangeStart ?? 0}
-            defaultValue={0}
-            min={0}
-            max={videoDuration || 0}
-            step={0.1}
-            format={(value) => value.toFixed(1)}
-            onChange={(value) =>
-              updateLayer(target.deck, target.layerIndex, {
-                source: { ...source, rangeStart: value },
-              })
-            }
-          />
-          <Slider
-            label="Fine"
-            value={source.rangeEnd ?? videoDuration}
-            defaultValue={videoDuration}
-            min={0}
-            max={videoDuration || 0}
-            step={0.1}
-            format={(value) => value.toFixed(1)}
-            onChange={(value) =>
-              updateLayer(target.deck, target.layerIndex, {
-                source: { ...source, rangeEnd: value },
-              })
-            }
-          />
-          <div className="segmented">
-            <button className="seg-btn" onClick={() => seekVideo(-5)}>
-              Indietro
-            </button>
-            <button className="seg-btn" onClick={() => seekVideo(5)}>
-              Avanti
-            </button>
-          </div>
         </div>
       ) : null}
 

@@ -57,6 +57,7 @@ export interface MomentarySceneSnapshot {
   sceneId: string;
   deckId: DeckId;
   deck: Deck;
+  library: MediaItem[];
   target: Target;
   selectedMediaId: string | null;
   monitor: MonitorMode;
@@ -105,6 +106,7 @@ export interface AppStore {
   ) => void;
   beginMomentaryScene: (sceneId: string) => void;
   endMomentaryScene: (sceneId?: string) => void;
+  latchMomentaryScene: (sceneId?: string) => void;
   renameScene: (sceneId: string, name: string) => void;
   removeScene: (sceneId: string) => void;
   setSceneShortcut: (
@@ -776,6 +778,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       sceneId,
       deckId: state.target.deck,
       deck: JSON.parse(JSON.stringify(state.decks[state.target.deck])) as Deck,
+      library: state.library,
       target: { ...state.target },
       selectedMediaId: state.selectedMediaId,
       monitor: state.monitor,
@@ -795,12 +798,22 @@ export const useAppStore = create<AppStore>((set, get) => ({
     if (!snapshot || (sceneId && snapshot.sceneId !== sceneId)) return;
     set({
       decks: { ...state.decks, [snapshot.deckId]: snapshot.deck },
+      library: snapshot.library,
       target: snapshot.target,
       selectedMediaId: snapshot.selectedMediaId,
       monitor: snapshot.monitor,
       inspectorTab: snapshot.inspectorTab,
       momentaryScene: null,
     });
+  },
+
+  latchMomentaryScene: (sceneId) => {
+    const state = get();
+    const snapshot = state.momentaryScene;
+    if (!snapshot || (sceneId && snapshot.sceneId !== sceneId)) return;
+    const scene = state.scenes.find((entry) => entry.id === snapshot.sceneId);
+    set({ momentaryScene: null });
+    if (scene) get().toast(`“${scene.name}” resta attiva`, 'success');
   },
 
   renameScene: (sceneId, value) => {

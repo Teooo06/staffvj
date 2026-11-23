@@ -84,6 +84,7 @@ export function MediaPanel() {
   const triggerCapture = useAppStore((state) => state.triggerCapture);
   const triggerNdi = useAppStore((state) => state.triggerNdi);
   const removeMedia = useAppStore((state) => state.removeMedia);
+  const updateMedia = useAppStore((state) => state.updateMedia);
   const addTextItem = useAppStore((state) => state.addTextItem);
   const addGenerator = useAppStore((state) => state.addGenerator);
   const addBrowserUrl = useAppStore((state) => state.addBrowserUrl);
@@ -100,6 +101,48 @@ export function MediaPanel() {
   const [ndiSources, setNdiSources] = useState<NdiSourceInfo[]>([]);
   const [ndiStatus, setNdiStatus] = useState<NdiStatus | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const durationProbes = useRef(new Set<string>());
+
+  useEffect(() => {
+    const cleanups: Array<() => void> = [];
+    const missing = library.filter(
+      (item) =>
+        item.kind === 'video' &&
+        item.path &&
+        (!item.duration || !Number.isFinite(item.duration) || item.duration <= 0) &&
+        !durationProbes.current.has(item.id),
+    );
+    for (const item of missing) {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      let cleaned = false;
+      const cleanup = () => {
+        if (cleaned) return;
+        cleaned = true;
+        durationProbes.current.delete(item.id);
+        video.removeAttribute('src');
+        video.load();
+      };
+      const finish = (duration: number) => {
+        if (cleaned) return;
+        if (Number.isFinite(duration) && duration > 0) {
+          updateMedia(item.id, { duration });
+        }
+        cleanup();
+      };
+      const onLoaded = () => finish(video.duration);
+      const onError = () => finish(0);
+      video.addEventListener('loadedmetadata', onLoaded, { once: true });
+      video.addEventListener('error', onError, { once: true });
+      durationProbes.current.add(item.id);
+      video.src = mediaUrl(item.path!);
+      cleanups.push(cleanup);
+    }
+    return () => {
+      for (const cleanup of cleanups) cleanup();
+    };
+  }, [library, updateMedia]);
 
   useEffect(() => {
     if (!generatorOpen) return;

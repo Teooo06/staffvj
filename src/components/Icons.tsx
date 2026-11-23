@@ -28,6 +28,12 @@ export type IconName =
   | 'generator'
   | 'layers'
   | 'play'
+  | 'pause'
+  | 'stop'
+  | 'restart'
+  | 'rewind'
+  | 'forward'
+  | 'loop'
   | 'edit'
   | 'chevron-down'
   | 'chevron-right'
@@ -208,6 +214,43 @@ const PATHS: Record<IconName, ReactNode> = {
   play: (
     <>
       <path d="m8 5 11 7-11 7V5Z" />
+    </>
+  ),
+  pause: (
+    <>
+      <rect x="6" y="5" width="4" height="14" rx="1" />
+      <rect x="14" y="5" width="4" height="14" rx="1" />
+    </>
+  ),
+  stop: (
+    <>
+      <rect x="6.5" y="6.5" width="11" height="11" rx="1.5" />
+    </>
+  ),
+  restart: (
+    <>
+      <path d="M4 5v6h6" />
+      <path d="M5.5 15.5A7.5 7.5 0 1 0 6 7" />
+    </>
+  ),
+  rewind: (
+    <>
+      <path d="m11 6-6 6 6 6V6Z" />
+      <path d="m19 6-6 6 6 6V6Z" />
+    </>
+  ),
+  forward: (
+    <>
+      <path d="m13 6 6 6-6 6V6Z" />
+      <path d="m5 6 6 6-6 6V6Z" />
+    </>
+  ),
+  loop: (
+    <>
+      <path d="M17 2.5 20.5 6 17 9.5" />
+      <path d="M4 12V9.5A3.5 3.5 0 0 1 7.5 6h13" />
+      <path d="M7 21.5 3.5 18 7 14.5" />
+      <path d="M20 12v2.5a3.5 3.5 0 0 1-3.5 3.5h-13" />
     </>
   ),
   edit: (
